@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Data-logger for sensors
 # ADS1x15 ADC Converter 12 bits - FFF  4095.
 #
@@ -11,6 +13,7 @@
 # License: Public Domain
 
 import time
+import datetime
 # Import the ADS1x15 module.
 import Adafruit_ADS1x15
 import matplotlib.pyplot as plt
@@ -19,6 +22,12 @@ import matplotlib.pyplot as plt
 channel = 2  # Channel number
 time_period_Sec = 1 # Time period in Seconds [S]
 time_freq = 0.01 # 10 ms
+
+
+
+strDate = '{0:%Y-%m-%d_%H-%M-%S}'.format(datetime.datetime.now())
+file_name = "data_log_"+ strDate +".csv"
+
 
 measrADC = {'temp':[], 'adcHex':[]}
 
@@ -53,8 +62,16 @@ adc.start_adc(channel, gain=GAIN)
 # readings.  See the read_adc_difference() function in differential.py for more
 # information and parameter description.
 
+
+
+
 # Read channel for time_period_Sec seconds and print out its values.
 print('Reading ADS1x15 channel ' + str(channel) +  ' for '+ str(time_period_Sec) +' seconds...')
+
+
+# Open a file
+fo = open(file_name, "w")
+
 start = time.time()
 count=0
 while (time.time() - start) <= time_period_Sec:
@@ -64,22 +81,33 @@ while (time.time() - start) <= time_period_Sec:
     # conversion (like by calling read_adc again) it will disable the
     # continuous conversion!
     #print(time.time())
-    print('{0} | Channel 2: {1}'.format(time.time(), value))
+    #print('{0} | Channel 2: {1}'.format(time.time(), value))
     print('{0} , {1}'.format(time.time(), value)) # CSV format
+    
     count = 1 + count
     #t.append( count )
     (measrADC['temp']).append( count )
     #sens.append(value)
     (measrADC['adcHex']).append( value )
     
+    fo.write('{0} , {1}'.format(time.time(), value) + "\n");
+    
     # Sleep for 10 milliseconds.
     time.sleep(time_freq)
+
+# Close opend file
+fo.close()
 
 # Stop continuous conversion.  After this point you can't get data from get_last_result!
 adc.stop_adc()
 
 plt.plot(measrADC['temp'], measrADC['adcHex'], 'bo', measrADC['temp'], measrADC['adcHex'], 'k')
 plt.show()
+
+print("Log file name: " + file_name + " created.")
+
+   
+
 
 
 
